@@ -26,6 +26,8 @@ int main(int argc, char** argv){
 	char tmpPK_x[32 * 2 + 10];
 	char tmpPK_y[32 * 2 + 10];
 
+	char derived_key_xor[16 * 2 + 10];
+
 	char patientID_IV[16 * 2 + 10];
 	char patientID_ciphertext[16 * 2 + 10];
 	char patientID_MAC[16 * 2 + 10];
@@ -39,7 +41,7 @@ int main(int argc, char** argv){
 	fscanf(fp, "%*s%s%s", tmpPK_x, tmpPK_y);
 	// get the temporary public key
 
-	fscanf(fp, "%*s%*s");
+	fscanf(fp, "%*s%s", derived_key_xor);
 	// skip the derived key
 
 	fscanf(fp, "%*s%s%*s%s%*s%s", patientID_IV, patientID_ciphertext, patientID_MAC);
@@ -50,7 +52,7 @@ int main(int argc, char** argv){
 
 	fclose(fp);
 
-	printf("%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n", 
+	printf("%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n", 
 		doctor_ID,
 		record_signature_x,
 		record_signature_y,
@@ -59,6 +61,7 @@ int main(int argc, char** argv){
 		patientInfo_MAC,
 		tmpPK_x,
 		tmpPK_y,
+		derived_key_xor,
 		patientID_IV,
 		patientID_ciphertext,
 		patientID_MAC
