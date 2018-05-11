@@ -27,18 +27,7 @@ void vrferror(char *errorMessage){
 	exit(1);
 }
 
-int main(int argc, char **argv){
-	if(argc < 2){
-		printf("format: vrftx <Tx file>\n");
-		return 0; 
-	}
-
-	char buf[450 + 10];
-
-	FILE *fp = fopen(argv[1], "rb");
-	fread(buf, 450, 1, fp);
-	fclose(fp);	
-
+int verify(char *buf){
 	int doctor_ID;
 	hexread((char*)&doctor_ID, 4, buf, 8);
 	doctor_ID = ntohl((uint32_t) doctor_ID);	
@@ -239,6 +228,71 @@ int main(int argc, char **argv){
 
 	EC_GROUP_free(ec_group);
 
+	if(valid == -1){
+		return 0;
+	}else{
+		return 1;
+	}
+}
+
+int main(){
+	struct sockaddr_in server_address;
+	memset(&server_address, 0, sizeof(server_address));
+	server_address.sin_family = AF_INET;
+	server_address.sin_port = htons(6602);
+	server_address.sin_addr.s_addr = htonl(INADDR_ANY);
+
+	int listen_sock;
+	if ((listen_sock = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
+		printf("could not create listen socket\n");
+		return 1;
+	}
+
+	if ((bind(listen_sock, (struct sockaddr *)&server_address,
+	          sizeof(server_address))) < 0) {
+		printf("could not bind socket\n");
+		return 1;
+	}
+
+	int wait_size = 16;
+	if (listen(listen_sock, wait_size) < 0) {
+		printf("could not open socket for listening\n");
+		return 1;
+	}
+
+	struct sockaddr_in client_address;
+	int client_address_len = 0;
+
+	while (1) {
+		int sock;
+		if ((sock =
+		         accept(listen_sock, (struct sockaddr *)&client_address,
+		                &client_address_len)) < 0) {
+			printf("could not open a socket to accept data\n");
+			return 1;
+		}
+
+		int n = 0;
+		int maxlen = 450;
+		char buffer[500];
+
+		printf("client connected with ip address: %s\n",
+		       inet_ntoa(client_address.sin_addr));
+
+		memset(buffer, 0, maxlen);
+
+		n = recv(sock, buffer, maxlen, 0);
+		printf("received: '%s'\n", buffer);
+
+		int result = verify(buffer);
+		char string[100];
+		sprintf(string, "%d", result);
+
+		send(sock, string, 1, 0);
+		close(sock);
+	}
+
+	close(listen_sock);
 	return 0;
 }
 
