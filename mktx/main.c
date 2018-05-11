@@ -14,7 +14,7 @@ int main(int argc, char** argv){
 		return 1;
 	}
 
-	char doctor_ID[] = "0001";
+	char doctor_ID[] = "00000001";
 	
 	char record_signature_x[32 * 2 + 10];
 	char record_signature_y[32 * 2 + 10];
